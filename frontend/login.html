@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - Quản lý chi tiêu</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="auth-box">
+            <h2>💰 Expense Tracker</h2>
+            
+            <!-- Form Đăng nhập -->
+            <div id="login-form">
+                <h3>Đăng Nhập</h3>
+                <input type="text" id="login-username" placeholder="Tên đăng nhập">
+                <input type="password" id="login-password" placeholder="Mật khẩu">
+                <button onclick="handleLogin()">Vào ví ngay</button>
+                <p>Chưa có tài khoản? <a href="#" onclick="toggleForms()">Đăng ký</a></p>
+            </div>
+
+            <!-- Form Đăng ký (Mặc định ẩn) -->
+            <div id="register-form" style="display: none;">
+                <h3>Đăng Ký</h3>
+                <input type="email" id="reg-email" placeholder="Email (ví dụ: a@b.com)">
+                <input type="text" id="reg-username" placeholder="Tên đăng nhập">
+                <input type="text" id="reg-fullname" placeholder="Họ và tên">
+                <input type="password" id="reg-password" placeholder="Mật khẩu">
+                <button onclick="handleRegister()">Tạo tài khoản</button>
+                <p>Đã có tài khoản? <a href="#" onclick="toggleForms()">Đăng nhập</a></p>
+            </div>
+
+            <div id="message" class="message"></div>
+        </div>
+    </div>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/auth.js"></script>
+</body>
+</html>

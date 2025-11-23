@@ -4,25 +4,28 @@ from .database import engine, Base
 from . import models
 from .routers import auth, accounts, categories, transactions, reports
 
-# Tạo bảng trong database tự động
+# Tạo bảng tự động
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Expense Tracker API")
 
+# --- CẤU HÌNH CORS (SỬA ĐOẠN NÀY) ---
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Cho phép tất cả mọi nguồn truy cập (Quan trọng nhất)
+    allow_credentials=True,
+    allow_methods=["*"],  # Cho phép tất cả các phương thức (GET, POST, PUT...)
+    allow_headers=["*"],  # Cho phép tất cả các header
+)
+# ------------------------------------
+
+# Đăng ký các router
 app.include_router(auth.router)
 app.include_router(accounts.router)
 app.include_router(categories.router)
 app.include_router(transactions.router)
 app.include_router(reports.router)
-# Cấu hình CORS (để sau này Frontend gọi được)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 @app.get("/")
 def read_root():
-    return {"message": "Hello Bro! API Expense Tracker đã chạy ngon lành!"}
+    return {"message": "Expense Tracker API is running!"}
