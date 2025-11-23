@@ -8,4 +8,4 @@ passlib[bcrypt]
 python-dotenv
 psycopg2-binary
 email-validator
-bcrypt
+bcrypt==4.0.1
