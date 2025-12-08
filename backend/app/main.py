@@ -1,38 +1,36 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text # <--- Import thêm cái này để chạy SQL thuần
 from .database import engine
 from . import models
-# Import tất cả các router (API) đã xây dựng
+# Import tất cả các router
 from .routers import auth, accounts, categories, transactions, reports
 
-# Lệnh này tự động tạo bảng trong DB nếu chưa có (quan trọng khi chạy lần đầu)
+# Tự động tạo bảng khi khởi động (nếu chưa có)
 models.Base.metadata.create_all(bind=engine)
 
-# Khởi tạo ứng dụng FastAPI
 app = FastAPI(
     title="Expense Tracker API",
-    description="Hệ thống API quản lý chi tiêu cá nhân (Bài tập lớn)",
+    description="Hệ thống API quản lý chi tiêu cá nhân",
     version="1.0.0"
 )
 
-# --- CẤU HÌNH CORS (QUAN TRỌNG) ---
-# Cho phép Frontend (Localhost hoặc Vercel) gọi được API
+# --- CẤU HÌNH CORS ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Cho phép tất cả các nguồn
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],  # Cho phép tất cả các phương thức (GET, POST, DELETE...)
-    allow_headers=["*"],  # Cho phép tất cả các header
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-# --- ĐĂNG KÝ CÁC ROUTER VÀO APP ---
-app.include_router(auth.router)          # API Đăng ký/Đăng nhập
-app.include_router(accounts.router)      # API Ví tiền
-app.include_router(categories.router)    # API Danh mục
-app.include_router(transactions.router)  # API Giao dịch (Thu/Chi)
-app.include_router(reports.router)       # API Báo cáo thống kê
+# --- ĐĂNG KÝ ROUTER ---
+app.include_router(auth.router)
+app.include_router(accounts.router)
+app.include_router(categories.router)
+app.include_router(transactions.router)
+app.include_router(reports.router)
 
-# --- ROOT ENDPOINT (Trang chủ API) ---
 @app.get("/")
 def read_root():
     return {
@@ -41,15 +39,20 @@ def read_root():
         "status": "live"
     }
 
-# --- (TIỆN ÍCH) API RESET DATABASE ---
-# Dùng để xóa sạch dữ liệu và tạo lại bảng khi cấu trúc thay đổi (Fix lỗi trên Render)
+# --- API RESET DATABASE (PHIÊN BẢN CASCADE MẠNH MẼ) ---
 @app.get("/reset-database-force")
 def reset_database_force():
     try:
-        # Xóa toàn bộ bảng cũ
-        models.Base.metadata.drop_all(bind=engine)
-        # Tạo lại bảng mới theo code models.py hiện tại
+        # Sử dụng Raw SQL với CASCADE để xóa bất chấp ràng buộc khóa ngoại
+        # Liệt kê tất cả tên bảng cần xóa
+        drop_query = text("DROP TABLE IF EXISTS budgets, transactions, categories, accounts, users CASCADE;")
+        
+        with engine.begin() as conn:
+            conn.execute(drop_query)
+            
+        # Tạo lại bảng mới tinh từ đầu
         models.Base.metadata.create_all(bind=engine)
-        return {"message": "Database has been reset successfully! All data cleared."}
+        
+        return {"message": "Đã xóa sạch Database (CASCADE) và tạo lại bảng mới thành công!"}
     except Exception as e:
         return {"error": str(e)}
