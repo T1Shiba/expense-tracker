@@ -2,7 +2,7 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import datetime
 
-# --- USER SCHEMAS ---
+# USER
 class UserBase(BaseModel):
     email: EmailStr
     username: str
@@ -15,11 +15,9 @@ class UserResponse(UserBase):
     id: int
     is_active: bool
     created_at: datetime
+    class Config: from_attributes = True 
 
-    class Config:
-        from_attributes = True 
-
-# --- TOKEN SCHEMAS ---
+# TOKEN
 class Token(BaseModel):
     access_token: str
     token_type: str
@@ -27,11 +25,12 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     username: Optional[str] = None
 
-# --- ACCOUNT SCHEMAS (PHẦN ĐANG BỊ THIẾU) ---
+# ACCOUNT
 class AccountBase(BaseModel):
     name: str
-    type: str # cash, bank, e_wallet...
+    type: str
     balance: float = 0.0
+    bank_name: Optional[str] = None # Thêm trường này
 
 class AccountCreate(AccountBase):
     pass
@@ -39,13 +38,12 @@ class AccountCreate(AccountBase):
 class AccountResponse(AccountBase):
     id: int
     user_id: int
+    class Config: from_attributes = True
 
-    class Config:
-        from_attributes = True
-
+# CATEGORY
 class CategoryBase(BaseModel):
     name: str
-    type: str # income (thu) hoặc expense (chi)
+    type: str
 
 class CategoryCreate(CategoryBase):
     pass
@@ -53,18 +51,17 @@ class CategoryCreate(CategoryBase):
 class CategoryResponse(CategoryBase):
     id: int
     user_id: int
+    class Config: from_attributes = True
 
-    class Config:
-        from_attributes = True
-
+# TRANSACTION
 class TransactionBase(BaseModel):
     amount: float
     note: Optional[str] = None
     date: datetime = datetime.now()
-    type: str # income, expense, transfer
+    type: str
     category_id: Optional[int] = None
     account_id: int
-    to_account_id: Optional[int] = None # Chỉ dùng khi chuyển tiền
+    to_account_id: Optional[int] = None # Thêm trường này
 
 class TransactionCreate(TransactionBase):
     pass
@@ -72,14 +69,11 @@ class TransactionCreate(TransactionBase):
 class TransactionResponse(TransactionBase):
     id: int
     user_id: int
+    class Config: from_attributes = True
 
-    class Config:
-        from_attributes = True
-
+# REPORT
 class MonthlyReport(BaseModel):
     total_income: float
     total_expense: float
     balance: float
-    
-    # Chi tiết theo từng danh mục (để vẽ biểu đồ tròn)
     expense_by_category: dict[str, float]

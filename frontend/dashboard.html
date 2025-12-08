@@ -3,113 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Quản lý chi tiêu</title>
+    <title>Dashboard - FinManager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
-    <!-- Thư viện biểu đồ Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
-    <!-- Thanh điều hướng -->
-    <nav>
-        <div class="nav-container">
-            <h1>💰 Expense Tracker</h1>
-            <div>
-                <span id="user-name" style="margin-right: 15px; font-weight: bold;">Xin chào!</span>
-                <button onclick="handleLogout()" style="width: auto; padding: 5px 15px; background: #f44336;">Đăng xuất</button>
+    <div class="app">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-icon"><i class="fa-solid fa-wallet"></i></div>
+                <div class="app-name">FinManager</div>
+            </div>
+            <ul class="nav-links">
+                <li class="nav-item"><a href="#" class="nav-link active"><i class="fa-solid fa-chart-line"></i> <span>Tổng quan</span></a></li>
+                <li class="nav-item"><a href="#" class="nav-link" onclick="openModal('wallet-modal')"><i class="fa-solid fa-wallet"></i> <span>Thêm Ví</span></a></li>
+                <li class="nav-item"><a href="#" class="nav-link" onclick="openModal('category-modal')"><i class="fa-solid fa-folder-plus"></i> <span>Thêm Danh mục</span></a></li>
+            </ul>
+            <div class="user-block">
+                <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                <div class="user-info">
+                    <div class="user-name" id="user-name">User</div>
+                </div>
+                <button class="btn-logout" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket"></i></button>
+            </div>
+        </nav>
+
+        <div class="main">
+            <div class="top-bar">
+                <div class="page-title">
+                    <h1>Tổng quan</h1>
+                    <p>Theo dõi tình hình tài chính của bạn</p>
+                </div>
+                <div class="date-picker">
+                    <input type="month" id="month-filter" onchange="loadDashboard()">
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-container">
+                <div class="card">
+                    <div class="card-header"><div class="card-icon bg-blue"><i class="fa-solid fa-coins"></i></div> Tổng Tài Sản</div>
+                    <div class="amount" id="total-balance">0 ₫</div>
+                    <div class="sub-info">Tất cả các ví</div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><div class="card-icon bg-green"><i class="fa-solid fa-money-bill"></i></div> Tiền Mặt</div>
+                    <div class="amount" id="cash-balance" style="color: var(--success)">0 ₫</div>
+                    <div class="sub-info">Tiền trong túi</div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><div class="card-icon bg-orange"><i class="fa-solid fa-credit-card"></i></div> Chuyển Khoản</div>
+                    <div class="amount" id="bank-balance" style="color: var(--warning)">0 ₫</div>
+                    <div class="sub-info">Bank / Ví điện tử</div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <!-- Chart -->
+                <div class="chart-card">
+                    <div class="card-title">
+                        <h3>Biểu đồ chi tiêu</h3>
+                    </div>
+                    <div style="height: 300px; display: flex; justify-content: center;">
+                        <canvas id="expenseChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- List -->
+                <div class="list-card">
+                    <div class="card-title">
+                        <h3>Giao dịch gần đây</h3>
+                        <button class="btn-primary" style="width: auto; padding: 8px 16px; font-size: 13px;" onclick="openModal('transaction-modal')">
+                            <i class="fa-solid fa-plus"></i> Thêm Mới
+                        </button>
+                    </div>
+                    <ul id="transaction-list" class="trans-list">
+                        <!-- JS render -->
+                    </ul>
+                </div>
             </div>
         </div>
-    </nav>
+    </div>
 
-    <div class="container dashboard-container">
-        
-        <!-- Phần Tổng quan -->
-        <div class="summary-cards">
-            <div class="card">
-                <h3>Tổng số dư</h3>
-                <p id="total-balance" class="money">0 đ</p>
-            </div>
-            <div class="card">
-                <h3>Thu nhập tháng này</h3>
-                <p id="month-income" class="money text-green">0 đ</p>
-            </div>
-            <div class="card">
-                <h3>Chi tiêu tháng này</h3>
-                <p id="month-expense" class="money text-red">0 đ</p>
-            </div>
-        </div>
-
-        <!-- Phần Thao tác nhanh -->
-        <div class="actions">
-            <button onclick="openModal('transaction-modal')">➕ Thêm Giao Dịch</button>
-            <button onclick="openModal('wallet-modal')" style="background-color: #2196F3;">💼 Thêm Ví</button>
-            <button onclick="openModal('category-modal')" style="background-color: #FF9800;">📂 Thêm Danh Mục</button>
-        </div>
-
-        <!-- Phần Biểu đồ & Danh sách -->
-        <div class="main-content">
-            <div class="chart-section card">
-                <h3>Thống kê chi tiêu</h3>
-                <canvas id="expenseChart"></canvas>
+    <!-- MODAL GIAO DỊCH -->
+    <div id="transaction-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Giao dịch mới</h3>
+                <div class="close-modal" onclick="closeModal('transaction-modal')">&times;</div>
             </div>
             
-            <div class="list-section card">
-                <h3>Giao dịch gần đây</h3>
-                <ul id="transaction-list" class="transaction-list">
-                    <!-- Dữ liệu sẽ được JS thêm vào đây -->
-                    <li>Đang tải...</li>
-                </ul>
+            <div class="type-selector">
+                <div class="type-btn active-exp" id="btn-expense" onclick="setTransactionType('expense')">
+                    <i class="fa-solid fa-arrow-down"></i> Chi tiền
+                </div>
+                <div class="type-btn" id="btn-income" onclick="setTransactionType('income')">
+                    <i class="fa-solid fa-arrow-up"></i> Thu tiền
+                </div>
             </div>
+            <input type="hidden" id="trans-type" value="expense">
+
+            <div class="input-group">
+                <label>Số tiền</label>
+                <input type="number" id="trans-amount" placeholder="VD: 50000">
+            </div>
+            <div class="input-group">
+                <label>Ví nguồn</label>
+                <select id="trans-wallet" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px;"></select>
+            </div>
+            <div class="input-group">
+                <label>Danh mục</label>
+                <select id="trans-category" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px;"></select>
+            </div>
+            <div class="input-group">
+                <label>Ghi chú</label>
+                <input type="text" id="trans-note" placeholder="VD: Ăn sáng...">
+            </div>
+            <button class="btn-primary" onclick="addTransaction()">Lưu Giao Dịch</button>
         </div>
     </div>
 
-    <!-- MODAL: Thêm Giao Dịch -->
-    <div id="transaction-modal" class="modal">
+    <!-- MODAL VÍ -->
+    <div id="wallet-modal" class="modal-overlay">
         <div class="modal-content">
-            <span class="close" onclick="closeModal('transaction-modal')">&times;</span>
-            <h2>Thêm Giao Dịch Mới</h2>
-            <input type="number" id="trans-amount" placeholder="Số tiền (VD: 50000)">
-            <input type="text" id="trans-note" placeholder="Ghi chú (VD: Ăn sáng)">
-            <select id="trans-type">
-                <option value="expense">Chi tiêu (Expense)</option>
-                <option value="income">Thu nhập (Income)</option>
-            </select>
-            <select id="trans-wallet">
-                <!-- JS sẽ điền danh sách ví vào đây -->
-            </select>
-            <select id="trans-category">
-                <!-- JS sẽ điền danh sách danh mục vào đây -->
-            </select>
-            <button onclick="addTransaction()">Lưu Giao Dịch</button>
+            <div class="modal-header">
+                <h3>Tạo ví mới</h3>
+                <div class="close-modal" onclick="closeModal('wallet-modal')">&times;</div>
+            </div>
+            <div class="input-group"><label>Tên ví</label><input type="text" id="wallet-name" placeholder="VD: Ví chính"></div>
+            <div class="input-group"><label>Số dư đầu</label><input type="number" id="wallet-balance" placeholder="0"></div>
+            <div class="input-group"><label>Loại ví</label>
+                <select id="wallet-type" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px;">
+                    <option value="cash">Tiền mặt</option>
+                    <option value="bank">Ngân hàng / E-Wallet</option>
+                </select>
+            </div>
+            <button class="btn-primary" onclick="addWallet()">Tạo Ví</button>
         </div>
     </div>
 
-    <!-- MODAL: Thêm Ví -->
-    <div id="wallet-modal" class="modal">
+    <!-- MODAL DANH MỤC -->
+    <div id="category-modal" class="modal-overlay">
         <div class="modal-content">
-            <span class="close" onclick="closeModal('wallet-modal')">&times;</span>
-            <h2>Thêm Ví Mới</h2>
-            <input type="text" id="wallet-name" placeholder="Tên ví (VD: Tiền mặt)">
-            <input type="number" id="wallet-balance" placeholder="Số dư ban đầu">
-            <select id="wallet-type">
-                <option value="cash">Tiền mặt</option>
-                <option value="bank">Ngân hàng</option>
-                <option value="e_wallet">Ví điện tử</option>
-            </select>
-            <button onclick="addWallet()">Lưu Ví</button>
-        </div>
-    </div>
-
-    <!-- MODAL: Thêm Danh Mục -->
-    <div id="category-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('category-modal')">&times;</span>
-            <h2>Thêm Danh Mục</h2>
-            <input type="text" id="cat-name" placeholder="Tên danh mục (VD: Ăn uống)">
-            <select id="cat-type">
-                <option value="expense">Chi tiêu</option>
-                <option value="income">Thu nhập</option>
-            </select>
-            <button onclick="addCategory()">Lưu Danh Mục</button>
+            <div class="modal-header">
+                <h3>Tạo danh mục</h3>
+                <div class="close-modal" onclick="closeModal('category-modal')">&times;</div>
+            </div>
+            <div class="input-group"><label>Tên danh mục</label><input type="text" id="cat-name" placeholder="VD: Ăn uống"></div>
+            <div class="input-group"><label>Loại</label>
+                <select id="cat-type" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px;">
+                    <option value="expense">Chi tiêu</option>
+                    <option value="income">Thu nhập</option>
+                </select>
+            </div>
+            <button class="btn-primary" onclick="addCategory()">Tạo Danh Mục</button>
         </div>
     </div>
 

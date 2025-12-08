@@ -1,4 +1,5 @@
-// Chuyển đổi giữa form đăng nhập và đăng ký
+// assets/js/auth.js
+
 function toggleForms() {
     const loginForm = document.getElementById('login-form');
     const regForm = document.getElementById('register-form');
@@ -13,7 +14,6 @@ function toggleForms() {
     document.getElementById('message').innerText = "";
 }
 
-// Xử lý Đăng ký
 async function handleRegister() {
     const email = document.getElementById('reg-email').value;
     const username = document.getElementById('reg-username').value;
@@ -27,12 +27,10 @@ async function handleRegister() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, username, full_name: fullName, password })
         });
-
         const data = await response.json();
-
         if (response.ok) {
-            alert("Đăng ký thành công! Hãy đăng nhập.");
-            toggleForms(); // Chuyển về form đăng nhập
+            alert("Đăng ký thành công! Vui lòng đăng nhập.");
+            toggleForms();
         } else {
             msg.innerText = data.detail || "Đăng ký thất bại";
         }
@@ -41,13 +39,10 @@ async function handleRegister() {
     }
 }
 
-// Xử lý Đăng nhập
 async function handleLogin() {
     const username = document.getElementById('login-username').value;
     const password = document.getElementById('login-password').value;
     const msg = document.getElementById('message');
-
-    // API login yêu cầu form-data (OAuth2 standard)
     const formData = new URLSearchParams();
     formData.append('username', username);
     formData.append('password', password);
@@ -58,16 +53,13 @@ async function handleLogin() {
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: formData
         });
-
         const data = await response.json();
-
         if (response.ok) {
-            // Lưu token vào bộ nhớ trình duyệt
             localStorage.setItem("token", data.access_token);
-            // Chuyển sang trang Dashboard
+            localStorage.setItem("username", username);
             window.location.href = "dashboard.html";
         } else {
-            msg.innerText = "Sai tên đăng nhập hoặc mật khẩu!";
+            msg.innerText = "Sai thông tin đăng nhập!";
         }
     } catch (error) {
         msg.innerText = "Lỗi kết nối Server!";
