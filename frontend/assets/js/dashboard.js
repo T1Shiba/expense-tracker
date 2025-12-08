@@ -1,17 +1,14 @@
 // assets/js/dashboard.js
 
-// Kiểm tra token
 const token = localStorage.getItem("token");
 if (!token) window.location.href = "login.html";
 
-// Load tên user
 const username = localStorage.getItem("username") || "User";
 const userNameEl = document.getElementById("user-name");
-if (userNameEl) userNameEl.innerText = username;
+if(userNameEl) userNameEl.innerText = username;
 
-// Hàm gọi API
 async function fetchAPI(endpoint, method = "GET", body = null) {
-    const options = { method, headers: getHeaders() }; // getHeaders từ config.js
+    const options = { method, headers: getHeaders() };
     if (body) options.body = JSON.stringify(body);
     try {
         const res = await fetch(`${API_BASE_URL}${endpoint}`, options);
@@ -20,59 +17,57 @@ async function fetchAPI(endpoint, method = "GET", body = null) {
     } catch (err) { return null; }
 }
 
-// --- ĐÃ XÓA formatMoney VÌ ĐÃ CÓ BÊN CONFIG.JS ---
-
 function setupDateFilter() {
     const dateInput = document.getElementById('month-filter');
-    if (!dateInput.value) {
+    if (dateInput && !dateInput.value) {
         const now = new Date();
         const month = String(now.getMonth() + 1).padStart(2, '0');
         const year = now.getFullYear();
         dateInput.value = `${year}-${month}`;
     }
-    return dateInput.value.split('-');
+    return dateInput ? dateInput.value.split('-') : [new Date().getFullYear(), new Date().getMonth() + 1];
 }
 
 let allCategories = [];
 
 // XỬ LÝ CHỌN LOẠI GIAO DỊCH
 function setTransactionType(type) {
-    document.getElementById('trans-type').value = type;
+    const typeInput = document.getElementById('trans-type');
+    if(typeInput) typeInput.value = type;
+
     const btnExp = document.getElementById('btn-expense');
     const btnInc = document.getElementById('btn-income');
     const btnTrans = document.getElementById('btn-transfer');
 
-    // Reset style
-    btnExp.className = 'type-btn';
-    btnInc.className = 'type-btn';
-    btnTrans.className = 'type-btn';
+    if (btnExp && btnInc && btnTrans) {
+        btnExp.className = 'type-btn';
+        btnInc.className = 'type-btn';
+        btnTrans.className = 'type-btn';
 
-    // Ẩn hiện các ô input
-    const groupDest = document.getElementById('group-dest-wallet');
-    const groupCat = document.getElementById('group-category');
-    const labelSource = document.getElementById('label-source-wallet');
+        const groupDest = document.getElementById('group-dest-wallet');
+        const groupCat = document.getElementById('group-category');
+        const labelSource = document.getElementById('label-source-wallet');
 
-    if (type === 'expense') {
-        btnExp.classList.add('active-exp');
-        groupDest.classList.add('hidden');
-        groupCat.classList.remove('hidden');
-        labelSource.innerText = "Ví thanh toán";
-    } else if (type === 'income') {
-        btnInc.classList.add('active-inc');
-        groupDest.classList.add('hidden');
-        groupCat.classList.remove('hidden');
-        labelSource.innerText = "Ví nhận tiền";
-    } else {
-        // Chuyển khoản
-        btnTrans.classList.add('active-transfer');
-        groupDest.classList.remove('hidden');
-        groupCat.classList.add('hidden');
-        labelSource.innerText = "Từ ví";
+        if (type === 'expense') {
+            btnExp.classList.add('active-exp');
+            if(groupDest) groupDest.classList.add('hidden');
+            if(groupCat) groupCat.classList.remove('hidden');
+            if(labelSource) labelSource.innerText = "Ví thanh toán";
+        } else if (type === 'income') {
+            btnInc.classList.add('active-inc');
+            if(groupDest) groupDest.classList.add('hidden');
+            if(groupCat) groupCat.classList.remove('hidden');
+            if(labelSource) labelSource.innerText = "Ví nhận tiền";
+        } else {
+            btnTrans.classList.add('active-transfer');
+            if(groupDest) groupDest.classList.remove('hidden');
+            if(groupCat) groupCat.classList.add('hidden');
+            if(labelSource) labelSource.innerText = "Từ ví";
+        }
     }
 
-    // Lọc danh mục
-    if (type !== 'transfer') {
-        const catSelect = document.getElementById("trans-category");
+    const catSelect = document.getElementById("trans-category");
+    if (catSelect && type !== 'transfer') {
         catSelect.innerHTML = "";
         const filtered = allCategories.filter(c => c.type === type);
         filtered.forEach(c => {
@@ -83,24 +78,28 @@ function setTransactionType(type) {
 
 // XỬ LÝ CHỌN LOẠI VÍ
 function toggleBankSelect() {
-    const type = document.getElementById('wallet-type').value;
+    const typeEl = document.getElementById('wallet-type');
     const bankGroup = document.getElementById('group-bank-list');
-    if (type === 'bank') {
-        bankGroup.classList.remove('hidden');
-        loadBankList();
-    } else {
-        bankGroup.classList.add('hidden');
+    
+    if (typeEl && bankGroup) {
+        if (typeEl.value === 'bank') {
+            bankGroup.classList.remove('hidden');
+            loadBankList();
+        } else {
+            bankGroup.classList.add('hidden');
+        }
     }
 }
 
 async function loadBankList() {
     const banks = await fetchAPI("/accounts/banks-list");
     const bankSelect = document.getElementById("wallet-bank-list");
-    bankSelect.innerHTML = "";
-    if (banks) banks.forEach(b => bankSelect.innerHTML += `<option value="${b}">${b}</option>`);
+    if (bankSelect) {
+        bankSelect.innerHTML = "";
+        if (banks) banks.forEach(b => bankSelect.innerHTML += `<option value="${b}">${b}</option>`);
+    }
 }
 
-// LOAD DASHBOARD
 async function loadDashboard() {
     const [year, month] = setupDateFilter();
     
@@ -112,18 +111,16 @@ async function loadDashboard() {
     ]);
 
     if(wallets) {
-        // Fill dropdown ví
         const walletOptions = wallets.map(w => {
             const bankInfo = w.bank_name ? ` - ${w.bank_name}` : '';
             return `<option value="${w.id}">${w.name}${bankInfo} (${formatMoney(w.balance)})</option>`;
         }).join('');
         
-        const wSelect1 = document.getElementById("trans-wallet");
-        const wSelect2 = document.getElementById("trans-dest-wallet");
-        if(wSelect1) wSelect1.innerHTML = walletOptions;
-        if(wSelect2) wSelect2.innerHTML = walletOptions;
+        const w1 = document.getElementById("trans-wallet");
+        const w2 = document.getElementById("trans-dest-wallet");
+        if(w1) w1.innerHTML = walletOptions;
+        if(w2) w2.innerHTML = walletOptions;
 
-        // Tính tổng
         let total = 0, cash = 0, bank = 0;
         wallets.forEach(w => {
             total += w.balance;
@@ -133,7 +130,6 @@ async function loadDashboard() {
         const elTotal = document.getElementById("total-balance");
         const elCash = document.getElementById("cash-balance");
         const elBank = document.getElementById("bank-balance");
-
         if(elTotal) elTotal.innerText = formatMoney(total);
         if(elCash) elCash.innerText = formatMoney(cash);
         if(elBank) elBank.innerText = formatMoney(bank);
@@ -199,7 +195,6 @@ function renderTransactions(transactions, m, y) {
     });
 }
 
-// Chart
 let myChart = null;
 function drawChart(dataObj) {
     const ctx = document.getElementById('expenseChart');
@@ -250,7 +245,8 @@ async function addWallet() {
     const name = document.getElementById("wallet-name").value;
     const balance = document.getElementById("wallet-balance").value || 0;
     const type = document.getElementById("wallet-type").value;
-    const bank_name = type === 'bank' ? document.getElementById("wallet-bank-list").value : null;
+    const bankListEl = document.getElementById("wallet-bank-list");
+    const bank_name = (type === 'bank' && bankListEl) ? bankListEl.value : null;
 
     if(!name) return;
     if(await fetchAPI("/accounts/", "POST", { name, balance: parseFloat(balance), type, bank_name })) {
@@ -285,9 +281,8 @@ async function deleteTransaction(id) {
 }
 
 function handleLogout() { localStorage.clear(); window.location.href = "login.html"; }
-// Định nghĩa hàm openModal ở Scope toàn cục để HTML gọi được
 window.openModal = function(id) { document.getElementById(id).style.display = "flex"; }
 window.closeModal = function(id) { document.getElementById(id).style.display = "none"; }
-// (Hoặc nếu không dùng window., đảm bảo file js load sau khi DOM sẵn sàng, nhưng cách này an toàn nhất cho inline onclick)
+window.toggleBankSelect = toggleBankSelect; // Expose to global scope for HTML onchange
 
 loadDashboard();
