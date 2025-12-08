@@ -1,12 +1,17 @@
 // assets/js/dashboard.js
+
+// Kiểm tra token
 const token = localStorage.getItem("token");
 if (!token) window.location.href = "login.html";
 
+// Load tên user
 const username = localStorage.getItem("username") || "User";
-document.getElementById("user-name").innerText = username;
+const userNameEl = document.getElementById("user-name");
+if (userNameEl) userNameEl.innerText = username;
 
+// Hàm gọi API
 async function fetchAPI(endpoint, method = "GET", body = null) {
-    const options = { method, headers: getHeaders() };
+    const options = { method, headers: getHeaders() }; // getHeaders từ config.js
     if (body) options.body = JSON.stringify(body);
     try {
         const res = await fetch(`${API_BASE_URL}${endpoint}`, options);
@@ -15,13 +20,15 @@ async function fetchAPI(endpoint, method = "GET", body = null) {
     } catch (err) { return null; }
 }
 
-const formatMoney = (amount) => new Intl.NumberFormat('vi-VN').format(amount) + " ₫";
+// --- ĐÃ XÓA formatMoney VÌ ĐÃ CÓ BÊN CONFIG.JS ---
+
 function setupDateFilter() {
     const dateInput = document.getElementById('month-filter');
     if (!dateInput.value) {
         const now = new Date();
         const month = String(now.getMonth() + 1).padStart(2, '0');
-        dateInput.value = `${now.getFullYear()}-${month}`;
+        const year = now.getFullYear();
+        dateInput.value = `${year}-${month}`;
     }
     return dateInput.value.split('-');
 }
@@ -110,8 +117,11 @@ async function loadDashboard() {
             const bankInfo = w.bank_name ? ` - ${w.bank_name}` : '';
             return `<option value="${w.id}">${w.name}${bankInfo} (${formatMoney(w.balance)})</option>`;
         }).join('');
-        document.getElementById("trans-wallet").innerHTML = walletOptions;
-        document.getElementById("trans-dest-wallet").innerHTML = walletOptions;
+        
+        const wSelect1 = document.getElementById("trans-wallet");
+        const wSelect2 = document.getElementById("trans-dest-wallet");
+        if(wSelect1) wSelect1.innerHTML = walletOptions;
+        if(wSelect2) wSelect2.innerHTML = walletOptions;
 
         // Tính tổng
         let total = 0, cash = 0, bank = 0;
@@ -119,9 +129,14 @@ async function loadDashboard() {
             total += w.balance;
             if(w.type === 'cash') cash += w.balance; else bank += w.balance;
         });
-        document.getElementById("total-balance").innerText = formatMoney(total);
-        document.getElementById("cash-balance").innerText = formatMoney(cash);
-        document.getElementById("bank-balance").innerText = formatMoney(bank);
+        
+        const elTotal = document.getElementById("total-balance");
+        const elCash = document.getElementById("cash-balance");
+        const elBank = document.getElementById("bank-balance");
+
+        if(elTotal) elTotal.innerText = formatMoney(total);
+        if(elCash) elCash.innerText = formatMoney(cash);
+        if(elBank) elBank.innerText = formatMoney(bank);
     }
 
     if(categories) {
@@ -130,8 +145,10 @@ async function loadDashboard() {
     }
 
     if(report) {
-        document.getElementById("month-income").innerText = `+${formatMoney(report.total_income)}`;
-        document.getElementById("month-expense").innerText = `-${formatMoney(report.total_expense)}`;
+        const elInc = document.getElementById("month-income");
+        const elExp = document.getElementById("month-expense");
+        if(elInc) elInc.innerText = `+${formatMoney(report.total_income)}`;
+        if(elExp) elExp.innerText = `-${formatMoney(report.total_expense)}`;
         drawChart(report.expense_by_category);
     }
 
@@ -140,7 +157,9 @@ async function loadDashboard() {
 
 function renderTransactions(transactions, m, y) {
     const list = document.getElementById("transaction-list");
+    if(!list) return;
     list.innerHTML = "";
+    
     const filtered = transactions.filter(t => {
         const d = new Date(t.date);
         return d.getMonth() + 1 == m && d.getFullYear() == y;
@@ -183,7 +202,9 @@ function renderTransactions(transactions, m, y) {
 // Chart
 let myChart = null;
 function drawChart(dataObj) {
-    const ctx = document.getElementById('expenseChart').getContext('2d');
+    const ctx = document.getElementById('expenseChart');
+    if(!ctx) return;
+    
     const labels = Object.keys(dataObj);
     const data = Object.values(dataObj);
     if (myChart) myChart.destroy();
@@ -193,7 +214,7 @@ function drawChart(dataObj) {
         { labels: ['Trống'], data: [1], colors: ['#e2e8f0'] } : 
         { labels, data, colors };
 
-    myChart = new Chart(ctx, {
+    myChart = new Chart(ctx.getContext('2d'), {
         type: 'doughnut',
         data: {
             labels: config.labels,
@@ -242,6 +263,7 @@ async function addWallet() {
 async function addCategory() {
     const name = document.getElementById("cat-name").value;
     const type = document.getElementById("cat-type").value;
+    if(!name) return;
     if(await fetchAPI("/categories/", "POST", { name, type })) {
         closeModal("category-modal");
         Toast.fire({ icon: 'success', title: 'Thêm danh mục thành công' });
@@ -263,6 +285,9 @@ async function deleteTransaction(id) {
 }
 
 function handleLogout() { localStorage.clear(); window.location.href = "login.html"; }
-function openModal(id) { document.getElementById(id).style.display = "flex"; }
-function closeModal(id) { document.getElementById(id).style.display = "none"; }
+// Định nghĩa hàm openModal ở Scope toàn cục để HTML gọi được
+window.openModal = function(id) { document.getElementById(id).style.display = "flex"; }
+window.closeModal = function(id) { document.getElementById(id).style.display = "none"; }
+// (Hoặc nếu không dùng window., đảm bảo file js load sau khi DOM sẵn sàng, nhưng cách này an toàn nhất cho inline onclick)
+
 loadDashboard();
