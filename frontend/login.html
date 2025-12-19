@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - FinManager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <div class="auth-wrapper">
+        <div class="auth-card">
+            <div style="font-size: 40px; color: var(--primary); margin-bottom: 10px;"><i class="fa-solid fa-wallet"></i></div>
+            <h2>FinManager</h2>
+            <p>Quản lý tài chính cá nhân</p>
+
+            <!-- Login Form -->
+            <div id="login-form">
+                <div class="input-group">
+                    <label>Tên đăng nhập</label>
+                    <input type="text" id="login-username" placeholder="Nhập username...">
+                </div>
+                <div class="input-group">
+                    <label>Mật khẩu</label>
+                    <input type="password" id="login-password" placeholder="••••••••">
+                </div>
+                <button class="btn-primary" onclick="handleLogin()">Đăng Nhập</button>
+                <div class="auth-switch">
+                    Chưa có tài khoản? <a href="#" onclick="toggleForms()">Đăng ký ngay</a>
+                </div>
+            </div>
+
+            <!-- Register Form -->
+            <div id="register-form" style="display: none;">
+                <div class="input-group">
+                    <label>Email</label>
+                    <input type="email" id="reg-email" placeholder="example@mail.com">
+                </div>
+                <div class="input-group">
+                    <label>Tên đăng nhập</label>
+                    <input type="text" id="reg-username" placeholder="Username">
+                </div>
+                <div class="input-group">
+                    <label>Họ và tên</label>
+                    <input type="text" id="reg-fullname" placeholder="Họ tên đầy đủ">
+                </div>
+                <div class="input-group">
+                    <label>Mật khẩu</label>
+                    <input type="password" id="reg-password" placeholder="••••••••">
+                </div>
+                <button class="btn-primary" onclick="handleRegister()">Tạo Tài Khoản</button>
+                <div class="auth-switch">
+                    Đã có tài khoản? <a href="#" onclick="toggleForms()">Quay lại đăng nhập</a>
+                </div>
+            </div>
+
+            <div id="message" class="error-msg"></div>
+        </div>
+    </div>
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/auth.js"></script>
+</body>
+</html>
