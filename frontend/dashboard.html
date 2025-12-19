@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - FinManager</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -12,242 +11,172 @@
 </head>
 <body>
     <div class="app">
-        <!-- Sidebar -->
         <nav class="sidebar">
             <div class="sidebar-header">
-                <div class="logo-icon"><i class="fa-solid fa-wallet"></i></div>
-                <div class="app-name">FinManager</div>
+                <i class="fa-solid fa-wallet"></i> FinManager
             </div>
             <ul class="nav-links">
-                <li class="nav-item"><a href="#" class="nav-link active"><i class="fa-solid fa-chart-line"></i> <span>Tổng quan</span></a></li>
-                <li class="nav-item"><a href="#" class="nav-link" onclick="openModal('wallet-modal')"><i class="fa-solid fa-wallet"></i> <span>Thêm Ví</span></a></li>
-                <li class="nav-item"><a href="#" class="nav-link" onclick="openModal('category-modal')"><i class="fa-solid fa-folder-plus"></i> <span>Thêm Danh mục</span></a></li>
+                <li class="nav-item"><a href="#" class="nav-link active"><i class="fa-solid fa-chart-pie"></i> <span>Tổng quan</span></a></li>
+                <li class="nav-item"><a href="#" class="nav-link" onclick="openModal('wallet-modal')"><i class="fa-solid fa-wallet"></i> <span>Ví của tôi</span></a></li>
+                <li class="nav-item"><a href="#" class="nav-link" onclick="openModal('category-modal')"><i class="fa-solid fa-layer-group"></i> <span>Danh mục</span></a></li>
             </ul>
             <div class="user-block">
-                <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                <div class="avatar"><i class="fa-regular fa-user"></i></div>
                 <div class="user-info">
+                    <div style="font-size:13px; color:#64748b;">Xin chào,</div>
                     <div class="user-name" id="user-name">User</div>
                 </div>
-                <button class="btn-logout" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket"></i></button>
+                <button class="btn-logout-mini" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket"></i></button>
             </div>
         </nav>
 
         <div class="main">
+            <!-- Header -->
             <div class="top-bar">
                 <div class="page-title">
-                    <h1>Tổng quan</h1>
-                    <p>Theo dõi tình hình tài chính của bạn</p>
+                    <h1 id="current-month-display">Tổng quan</h1>
+                    <p>Theo dõi dòng tiền và tài sản</p>
                 </div>
-                <div class="date-picker" style="display:flex; align-items:center; gap:10px;">
-    <button class="btn-date" onclick="changeMonth(-1)">◀</button>
+                <div class="filter-group">
+                    <button class="btn-icon" onclick="changeMonth(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+                    <input type="month" id="month-filter" onchange="loadDashboard()">
+                    <button class="btn-icon" onclick="changeMonth(1)"><i class="fa-solid fa-chevron-right"></i></button>
+                    <button class="btn-sm" onclick="goToday()">Hôm nay</button>
+                </div>
+            </div>
 
-    <div style="text-align:center;">
-        <input type="month" id="month-filter" onchange="loadDashboard()" style="margin-top:4px;">
-    </div>
-
-    <button class="btn-date" onclick="changeMonth(1)">▶</button>
-    
-
-    <button class="btn-date" onclick="goToday()">Hôm nay</button>
-    <!-- LỌC THEO KHOẢNG NGÀY -->
-    <div class="date-range" style="display:flex; gap:8px; margin-top:8px; align-items:center;">
-    <input type="date" id="start-date">
-    <span>→</span>
-    <input type="date" id="end-date">
-    <button class="btn-date" onclick="applyDateRange()">Lọc</button>
-    <button class="btn-date" onclick="clearDateRange()">Xóa</button>
-</div>
-
-</div>
-
+            <!-- Date Range -->
+            <div class="date-range-container">
+                <span style="font-size:13px; font-weight:600; color:#64748b"><i class="fa-regular fa-calendar"></i> Lọc theo ngày:</span>
+                <input type="date" id="start-date">
+                <span>➜</span>
+                <input type="date" id="end-date">
+                <button class="btn-sm btn-filled" onclick="applyDateRange()">Lọc</button>
+                <button class="btn-sm" onclick="clearDateRange()">Xóa</button>
             </div>
 
             <!-- Stats -->
             <div class="stats-container">
                 <div class="card">
-                    <div class="card-header"><div class="card-icon bg-blue"><i class="fa-solid fa-coins"></i></div> Tổng Tài Sản</div>
+                    <div class="card-header"><div class="card-icon bg-blue"><i class="fa-solid fa-scale-balanced"></i></div> Tổng Tài Sản</div>
                     <div class="amount" id="total-balance">0 ₫</div>
-                    <div class="sub-info">Tất cả các ví</div>
                 </div>
                 <div class="card">
                     <div class="card-header"><div class="card-icon bg-green"><i class="fa-solid fa-money-bill"></i></div> Tiền Mặt</div>
                     <div class="amount" id="cash-balance" style="color: var(--success)">0 ₫</div>
-                    <div class="sub-info">Tiền trong túi</div>
                 </div>
                 <div class="card">
-                    <div class="card-header"><div class="card-icon bg-orange"><i class="fa-solid fa-credit-card"></i></div> Chuyển Khoản</div>
+                    <div class="card-header"><div class="card-icon bg-orange"><i class="fa-solid fa-building-columns"></i></div> Ngân Hàng</div>
                     <div class="amount" id="bank-balance" style="color: var(--warning)">0 ₫</div>
-                    <div class="sub-info">Bank / Ví điện tử</div>
+                </div>
+            </div>
+
+            <!-- Charts & List -->
+            <div class="charts-grid-main">
+                <div class="card">
+                    <div class="card-title-row">
+                        <h3><i class="fa-solid fa-chart-line" style="color:#6366f1"></i> Biến động theo ngày</h3>
+                    </div>
+                    <div class="chart-wrapper-lg">
+                        <canvas id="dailyLineChart"></canvas>
+                    </div>
                 </div>
             </div>
 
             <div class="dashboard-grid">
-                <!-- Chart -->
-                <div class="chart-card">
-                <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
-                    <h3>Biểu đồ chi tiêu</h3>
-                    <div>
-                        <button class="btn-chart active" onclick="switchChart('doughnut')">Tròn</button>
-                        <button class="btn-chart" onclick="switchChart('bar')">Cột</button>
+                <div class="card">
+                    <div class="card-title-row">
+                        <h3>Cơ cấu chi tiêu</h3>
+                    </div>
+                    <div class="chart-wrapper-sm">
+                        <canvas id="expenseChart"></canvas>
                     </div>
                 </div>
 
-                <div style="height:300px; position:relative;">
-                    <canvas id="expenseChart"></canvas>
-                    <div id="chart-total"
-                        style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-                                font-size:18px; font-weight:600; color:#334155;">
-                    </div>
-                </div>
-            </div>
-            <!-- BIỂU ĐỒ THU – CHI THEO NGÀY -->
-            <div class="chart-card">
-                <div class="card-title">
-                    <h3>Thu – Chi theo ngày</h3>
-                </div>
-                <div style="height:300px;">
-                    <canvas id="dailyLineChart"></canvas>
-                </div>
-            </div>
-            <!-- SO SÁNH THÁNG NÀY ↔ THÁNG TRƯỚC -->
-            <div class="chart-card">
-                <div class="card-title">
-                    <h3>So sánh tháng này ↔ tháng trước</h3>
-                </div>
-                <div style="height:300px;">
-                    <canvas id="compareMonthChart"></canvas>
-                </div>
-            </div>
-
-
-
-                <!-- List -->
-                <div class="list-card">
-                    <div class="card-title">
+                <div class="list-card-full">
+                    <div class="card-title-row">
                         <h3>Giao dịch gần đây</h3>
-                        <button class="btn-primary" style="width: auto; padding: 8px 16px; font-size: 13px;" onclick="openModal('transaction-modal')">
-                            <i class="fa-solid fa-plus"></i> Thêm Mới
-                        </button>
+                        <button class="btn-sm btn-filled" onclick="openModal('transaction-modal')"><i class="fa-solid fa-plus"></i> Thêm</button>
                     </div>
-                        <input 
-                            type="text"
-                            id="search-trans"
-                            placeholder="Tìm giao dịch..."
-                            style="margin-bottom:10px; padding:8px; width:100%; border-radius:8px; border:1px solid #ddd"
-                            oninput="filterTransactions()"
-                        />
-
-                    <ul id="transaction-list" class="trans-list">
-                        <!-- JS render -->
-                    </ul>
+                    <div style="margin-bottom:10px;">
+                        <input type="text" id="search-trans" placeholder="🔍 Tìm kiếm nội dung..." style="width:100%; padding:8px; border:1px solid #e2e8f0; border-radius:8px;" oninput="filterTransactions()">
+                    </div>
+                    <ul id="transaction-list" class="trans-list"></ul>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- MODAL GIAO DỊCH -->
+    <!-- MODALS -->
+    <!-- Modal Giao Dịch -->
     <div id="transaction-modal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Giao dịch mới</h3>
+                <h3>Thêm giao dịch</h3>
                 <div class="close-modal" onclick="closeModal('transaction-modal')">&times;</div>
             </div>
-            
-            <!-- Phần này sửa lại ID cho khớp với JS -->
             <div class="type-selector">
-                <div class="type-btn active-exp" id="btn-expense" onclick="setTransactionType('expense')">
-                    <i class="fa-solid fa-arrow-down"></i> Chi tiền
-                </div>
-                <div class="type-btn" id="btn-income" onclick="setTransactionType('income')">
-                    <i class="fa-solid fa-arrow-up"></i> Thu tiền
-                </div>
-                <div class="type-btn" id="btn-transfer" onclick="setTransactionType('transfer')">
-                    <i class="fa-solid fa-right-left"></i> Chuyển
-                </div>
+                <div class="type-btn active-exp" id="btn-expense" onclick="setTransactionType('expense')"><i class="fa-solid fa-arrow-down"></i> Chi</div>
+                <div class="type-btn" id="btn-income" onclick="setTransactionType('income')"><i class="fa-solid fa-arrow-up"></i> Thu</div>
+                <div class="type-btn" id="btn-transfer" onclick="setTransactionType('transfer')"><i class="fa-solid fa-right-left"></i> Chuyển</div>
             </div>
             <input type="hidden" id="trans-type" value="expense">
-
             <div class="input-group">
                 <label>Số tiền</label>
-                <input type="number" id="trans-amount" placeholder="VD: 50000">
+                <input type="number" id="trans-amount" placeholder="0">
             </div>
-            
             <div class="input-group">
                 <label id="label-source-wallet">Ví nguồn</label>
-                <select id="trans-wallet" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px;"></select>
+                <select id="trans-wallet"></select>
             </div>
-
-            <!-- Ví đích cho chuyển tiền -->
             <div class="input-group hidden" id="group-dest-wallet">
                 <label>Đến ví</label>
-                <select id="trans-dest-wallet" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px;"></select>
+                <select id="trans-dest-wallet"></select>
             </div>
-
             <div class="input-group" id="group-category">
                 <label>Danh mục</label>
-                <select id="trans-category" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px;"></select>
+                <select id="trans-category"></select>
             </div>
-
             <div class="input-group">
                 <label>Ghi chú</label>
-                <input type="text" id="trans-note" placeholder="VD: Ăn sáng...">
+                <input type="text" id="trans-note" placeholder="VD: Ăn trưa">
             </div>
-            <button class="btn-primary" onclick="addTransaction()">Lưu Giao Dịch</button>
+            <button class="btn-primary" onclick="addTransaction()">Lưu</button>
         </div>
     </div>
 
-    <!-- MODAL VÍ (SỬA LẠI: Thêm phần chọn Ngân hàng) -->
+    <!-- Modal Ví -->
     <div id="wallet-modal" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3>Tạo ví mới</h3>
-                <div class="close-modal" onclick="closeModal('wallet-modal')">&times;</div>
-            </div>
-            <div class="input-group">
-                <label>Loại ví</label>
-                <select id="wallet-type" onchange="toggleBankSelect()" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px;">
+            <div class="modal-header"><h3>Tạo ví mới</h3><div class="close-modal" onclick="closeModal('wallet-modal')">&times;</div></div>
+            <div class="input-group"><label>Tên ví</label><input type="text" id="wallet-name" placeholder="VD: Tiền mặt"></div>
+            <div class="input-group"><label>Số dư đầu</label><input type="number" id="wallet-balance" placeholder="0"></div>
+            <div class="input-group"><label>Loại</label>
+                <select id="wallet-type" onchange="toggleBankSelect()">
                     <option value="cash">Tiền mặt</option>
-                    <option value="bank">Ngân hàng / E-Wallet</option>
+                    <option value="bank">Ngân hàng</option>
                 </select>
             </div>
-
-            <!-- Dropdown chọn Ngân hàng (Mặc định ẩn) -->
             <div class="input-group hidden" id="group-bank-list">
-                <label>Chọn Ngân hàng</label>
-                <select id="wallet-bank-list" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px;"></select>
+                <label>Ngân hàng</label>
+                <select id="wallet-bank-list"></select>
             </div>
-
-            <div class="input-group">
-                <label>Tên ví</label>
-                <input type="text" id="wallet-name" placeholder="VD: Ví chính">
-            </div>
-            <div class="input-group">
-                <label>Số dư đầu</label>
-                <input type="number" id="wallet-balance" placeholder="0">
-            </div>
-            <button class="btn-primary" onclick="addWallet()">Tạo Ví</button>
+            <button class="btn-primary" onclick="addWallet()">Lưu</button>
         </div>
     </div>
 
-    <!-- MODAL DANH MỤC -->
+    <!-- Modal Danh Mục -->
     <div id="category-modal" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3>Tạo danh mục</h3>
-                <div class="close-modal" onclick="closeModal('category-modal')">&times;</div>
-            </div>
-            <div class="input-group">
-                <label>Tên danh mục</label>
-                <input type="text" id="cat-name" placeholder="VD: Ăn uống">
-            </div>
-            <div class="input-group">
-                <label>Loại</label>
-                <select id="cat-type" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px;">
+            <div class="modal-header"><h3>Tạo danh mục</h3><div class="close-modal" onclick="closeModal('category-modal')">&times;</div></div>
+            <div class="input-group"><label>Tên danh mục</label><input type="text" id="cat-name"></div>
+            <div class="input-group"><label>Loại</label>
+                <select id="cat-type">
                     <option value="expense">Chi tiêu</option>
                     <option value="income">Thu nhập</option>
                 </select>
             </div>
-            <button class="btn-primary" onclick="addCategory()">Tạo Danh Mục</button>
+            <button class="btn-primary" onclick="addCategory()">Lưu</button>
         </div>
     </div>
 
